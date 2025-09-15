@@ -1,8 +1,12 @@
 # Neovim config
 
-> [!WARNING] Supports Neovim 0.11 + only
+> [!WARNING]
+> Supports Neovim 0.11 + only
 
-> [!SUMMARY] Trying to keep it as simple as possible:
+> [!SUMMARY]
+> Trying to keep it as simple as possible:
+
+---
 
 # Lsp
 
