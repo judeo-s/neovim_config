@@ -1,35 +1,34 @@
 return {
-    -- Dashbaord nvim
-    {
-      'nvimdev/dashboard-nvim',
-      event = 'VimEnter',
-      config = function()
-        require('dashboard').setup {
-          -- config
-        }
-      end,
-      dependencies = { {'nvim-tree/nvim-web-devicons'}}
-    },
-    -- which key, for checking keys
-    {
-      "folke/which-key.nvim",
-      event = "VeryLazy",
-      opts = {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-      },
-      keys = {
-        {
-          "<leader>?",
-          function()
-            require("which-key").show({ global = false })
-          end,
-          desc = "Buffer Local Keymaps (which-key)",
-        },
-      },
-    },
-    {
+	-- Dashbaord nvim
+	{
+		"nvimdev/dashboard-nvim",
+		event = "VimEnter",
+		config = function()
+			require("dashboard").setup({
+				-- config
+			})
+		end,
+		dependencies = { { "nvim-tree/nvim-web-devicons" } },
+	},
+	-- which key, for checking keys
+	{
+		"folke/which-key.nvim",
+		event = "VeryLazy",
+		opts = {
+			-- your configuration comes here
+			-- or leave it empty to use the default settings
+			-- refer to the configuration section below
+		},
+		keys = {
+			{
+				"<leader>?",
+				function()
+					require("which-key").show({ global = false })
+				end,
+				desc = "Buffer Local Keymaps (which-key)",
+			},
+		},
+	},
 
 	{
 		"yorickpeterse/nvim-window",
@@ -37,109 +36,98 @@ return {
 			{ "<leader>w", "<cmd>lua require('nvim-window').pick()<CR>", desc = "nvim-window Selection" },
 		},
 		config = function()
-            require("nvim-window").setup({
-                -- The characters available for hinting windows.
-                chars = {"1", "2", "3", "4", "5", "6", "7", "8"},
+			require("nvim-window").setup({
+				-- The characters available for hinting windows.
+				chars = { "1", "2", "3", "4", "5", "6", "7", "8" },
 
-                -- A group to use for overwriting the Normal highlight group in the floating
-                -- window. This can be used to change the background color.
-                normal_hl = "Normal",
+				-- A group to use for overwriting the Normal highlight group in the floating
+				-- window. This can be used to change the background color.
+				normal_hl = "Normal",
 
-                -- The highlight group to apply to the line that contains the hint characters.
-                -- This is used to make them stand out more.
-                hint_hl = "Bold",
+				-- The highlight group to apply to the line that contains the hint characters.
+				-- This is used to make them stand out more.
+				hint_hl = "Bold",
 
-                -- The border style to use for the floating window.
-                border = "single"
-            })
+				-- The border style to use for the floating window.
+				border = "single",
+			})
 
-            local map = vim.api.nvim_set_keymap
-            local default_options = {noremap = true, silent = true}
+			local map = vim.api.nvim_set_keymap
+			local default_options = { noremap = true, silent = true }
 
-            map("n", "<leader>w", "<cmd>lua require('nvim-window').pick()<CR>", default_options)
-            end,
-        },
-    },
-
-    -- discord presence
-    {
-
-        "andweeb/presence.nvim",
-        config = function()
-            require("config.presence")
-        end,
-    },
+			map("n", "<leader>w", "<cmd>lua require('nvim-window').pick()<CR>", default_options)
+		end,
+	},
 
 	{
 		"ThePrimeagen/harpoon",
 		branch = "harpoon2",
 		config = function()
-            local harpoon = require("harpoon")
-            harpoon:setup({
-                settings = {
-                    save_on_toggle = true,
-                },
-            })
+			local harpoon = require("harpoon")
+			harpoon:setup({
+				settings = {
+					save_on_toggle = true,
+				},
+			})
 
-            local function my_harpoon_add_file()
-                harpoon:list():add()
+			local function my_harpoon_add_file()
+				harpoon:list():add()
 
-                local f = vim.api.nvim_buf_get_name(0)
-                vim.notify("Harpoon: <" .. f .. "> added", vim.log.levels.INFO, {})
-            end
+				local f = vim.api.nvim_buf_get_name(0)
+				vim.notify("Harpoon: <" .. f .. "> added", vim.log.levels.INFO, {})
+			end
 
-            local toggle_opts = {
-                border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
-                ui_width_ratio = 0.375,
-                title_pos = "center",
-            }
+			local toggle_opts = {
+				border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+				ui_width_ratio = 0.375,
+				title_pos = "center",
+			}
 
-            local function toggle_next_buffer()
-                if harpoon:list():length() == 0 then
-                    vim.cmd("bnext")
-                else
-                    harpoon:list():next({ ui_nav_wrap = true })
-                end
-            end
+			local function toggle_next_buffer()
+				if harpoon:list():length() == 0 then
+					vim.cmd("bnext")
+				else
+					harpoon:list():next({ ui_nav_wrap = true })
+				end
+			end
 
-            local function toggle_prev_buffer()
-                if harpoon:list():length() == 0 then
-                    vim.cmd("bprevious")
-                else
-                    harpoon:list():prev({ ui_nav_wrap = true })
-                end
-            end
+			local function toggle_prev_buffer()
+				if harpoon:list():length() == 0 then
+					vim.cmd("bprevious")
+				else
+					harpoon:list():prev({ ui_nav_wrap = true })
+				end
+			end
 
-            vim.keymap.set("n", "m", function()
-                my_harpoon_add_file()
-            end)
-            vim.keymap.set("n", "<leader>mm", function()
-                harpoon.ui:toggle_quick_menu(harpoon:list(), toggle_opts)
-            end)
-            vim.keymap.set("n", "M1", function()
-                harpoon:list():select(1)
-            end)
-            vim.keymap.set("n", "M2", function()
-                harpoon:list():select(2)
-            end)
-            vim.keymap.set("n", "M3", function()
-                harpoon:list():select(3)
-            end)
-            vim.keymap.set("n", "M4", function()
-                harpoon:list():select(4)
-            end)
-            vim.keymap.set("n", "M5", function()
-                harpoon:list():select(5)
-            end)
+			vim.keymap.set("n", "Mm", function()
+				my_harpoon_add_file()
+			end)
+			vim.keymap.set("n", "<leader>mm", function()
+				harpoon.ui:toggle_quick_menu(harpoon:list(), toggle_opts)
+			end)
+			vim.keymap.set("n", "M1", function()
+				harpoon:list():select(1)
+			end)
+			vim.keymap.set("n", "M2", function()
+				harpoon:list():select(2)
+			end)
+			vim.keymap.set("n", "M3", function()
+				harpoon:list():select(3)
+			end)
+			vim.keymap.set("n", "M4", function()
+				harpoon:list():select(4)
+			end)
+			vim.keymap.set("n", "M5", function()
+				harpoon:list():select(5)
+			end)
 
-            -- Tab switch buffer
-            vim.keymap.set("n", "<TAB>", function()
-                toggle_next_buffer()
-            end)
-            vim.keymap.set("n", "<S-TAB>", function()
-                toggle_prev_buffer()
-            end)
-
+			-- Tab switch buffer
+			vim.keymap.set("n", "<TAB>", function()
+				toggle_next_buffer()
+			end)
+			vim.keymap.set("n", "<S-TAB>", function()
+				toggle_prev_buffer()
+			end)
 		end,
 	},
 
@@ -430,258 +418,250 @@ return {
 		end,
 	},
 
-
-
-    -- lualine harpoo
-    {
-        'kiennt63/harpoon-files.nvim',
-        dependencies = {
-            { 'ThePrimeagen/harpoon', branch = 'harpoon2' },
-        opts = {
-            max_length = 5,
-            icon = '',
-            show_icon = true,
-            show_index = true,
-            show_filename = true,
-            separator_left = ' ',
-            separator_right = ' ',
-            reverse_order = false,
-        },
-    },
-
+	-- lualine harpoo
 	{
-		"nvim-lualine/lualine.nvim",
-		-- event = "VeryLazy",
-		config = function()
-			local lualine = require("lualine")
-			local lazy_status = require("lazy.status")
-            local harpoon_files = require("harpoon_files")
+		"kiennt63/harpoon-files.nvim",
+		dependencies = {
+			{ "ThePrimeagen/harpoon", branch = "harpoon2" },
+			opts = {
+				max_length = 5,
+				icon = "",
+				show_icon = true,
+				show_index = true,
+				show_filename = true,
+				separator_left = " ",
+				separator_right = " ",
+				reverse_order = false,
+			},
+		},
 
-			lualine.setup({
-				options = {
-					icons_enabled = true,
-					globalstatus = false,
-					theme = "auto",
-					refresh = {
-						statusline = 1000,
-						tabline = 1000,
-						winbar = 1000,
-					},
-				},
-				sections = {
-					lualine_a = { "mode" },
-					lualine_b = {
-						"branch",
-						{ "diff", colored = true },
-						{
-							"diagnostics",
-							update_in_insert = true,
-							symbols = { error = " " },
+		{
+			"nvim-lualine/lualine.nvim",
+			-- event = "VeryLazy",
+			config = function()
+				local lualine = require("lualine")
+				local lazy_status = require("lazy.status")
+				local harpoon_files = require("harpoon_files")
+
+				lualine.setup({
+					options = {
+						icons_enabled = true,
+						globalstatus = false,
+						theme = "auto",
+						refresh = {
+							statusline = 1000,
+							tabline = 1000,
+							winbar = 1000,
 						},
 					},
-					lualine_c = { {"filename"}, { "searchcount" } ,{harpoon_files.lualine_component}},
-					lualine_x = {
-						{
-							lazy_status.updates,
-							cond = lazy_status.has_updates,
-							color = { fg = "#ff9e65" },
+					sections = {
+						lualine_a = { "mode" },
+						lualine_b = {
+							"branch",
+							{ "diff", colored = true },
+							{
+								"diagnostics",
+								update_in_insert = true,
+								symbols = { error = " " },
+							},
 						},
-						{
-							function()
-								local reg = vim.fn.reg_recording()
-								if reg == "" then
-									return ""
-								end -- not recording
-								return "recording@" .. reg
+						lualine_c = { { "filename" }, { "searchcount" }, { harpoon_files.lualine_component } },
+						lualine_x = {
+							{
+								lazy_status.updates,
+								cond = lazy_status.has_updates,
+								color = { fg = "#ff9e65" },
+							},
+							{
+								function()
+									local reg = vim.fn.reg_recording()
+									if reg == "" then
+										return ""
+									end -- not recording
+									return "recording@" .. reg
+								end,
+							},
+
+							"filetype",
+							"fileformat",
+						},
+						lualine_y = {
+							"progress",
+						},
+						lualine_z = { "location" },
+					},
+					inactive_sections = {
+						lualine_a = {},
+						lualine_b = {},
+						lualine_c = { { "filename", file_status = true, path = 1 } },
+						lualine_x = { "location" },
+						lualine_y = {},
+						lualine_z = {},
+					},
+					extensions = { "fugitive", "nvim-tree" },
+				})
+			end,
+		},
+		-- wilder for terminal cmd
+		{
+			"gelguy/wilder.nvim",
+			config = function()
+				-- config goes here
+
+				local wilder = require("wilder")
+
+				wilder.setup({
+					modes = { ":", "/", "?" },
+				})
+
+				wilder.set_option(
+					"renderer",
+					wilder.popupmenu_renderer(wilder.popupmenu_palette_theme({
+						highlighter = wilder.basic_highlighter(),
+						left = { " ", wilder.popupmenu_devicons() },
+						right = { " ", wilder.popupmenu_scrollbar() },
+						-- 'single', 'double', 'rounded' or 'solid'
+						max_height = "50%",
+						min_height = "0",
+						pumblend = 0,
+						border = "rounded",
+						prompt_position = "bottom",
+						reverse = 0,
+					}))
+				)
+			end,
+		},
+		-- diff view in nvim
+		{
+			"sindrets/diffview.nvim",
+			config = function()
+				local keymap = vim.keymap
+				keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<CR>", { desc = "Open diffview" })
+				keymap.set("n", "<leader>gx", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" })
+			end,
+		},
+
+		-- neo clip / clip board manager
+		{
+			"AckslD/nvim-neoclip.lua",
+			dependencies = {
+				{ "kkharji/sqlite.lua", module = "sqlite" },
+				-- you'll need at least one of these
+				-- {'nvim-telescope/telescope.nvim'},
+				-- {'ibhagwan/fzf-lua'},
+			},
+			config = function()
+				local keymap = vim.keymap
+				require("neoclip").setup()
+				keymap.set("n", "<leader>cc", "<cmd>Telescope neoclip<CR>", { desc = "open clipboard manager" })
+			end,
+		},
+
+		{
+			"windwp/nvim-ts-autotag",
+			config = function()
+				require("nvim-ts-autotag").setup({
+					opts = {
+						-- Defaults
+						enable_close = true, -- Auto close tags
+						enable_rename = true, -- Auto rename pairs of tags
+						enable_close_on_slash = true, -- Auto close on trailing </
+					},
+					-- Also override individual filetype configs, these take priority.
+					-- Empty by default, useful if one of the "opts" global settings
+					-- doesn't work well in a specific filetype
+					per_filetype = {
+						["html"] = {
+							enable_close = false,
+						},
+					},
+				})
+			end,
+		},
+
+		-- Markdown live preview
+		{
+			"OXY2DEV/markview.nvim",
+			lazy = false, -- Recommended
+			-- ft = "markdown" -- If you decide to lazy-load anyway
+
+			dependencies = {
+				"nvim-treesitter/nvim-treesitter",
+				"tree-sitter/tree-sitter",
+				"nvim-tree/nvim-web-devicons",
+			},
+			config = function()
+				require("markview").setup({
+					experimental = {
+						check_rtp = false,
+					},
+					preview = {
+						modes = { "n", "no", "c" }, -- Change these modes
+						-- to what you need
+
+						hybrid_modes = { "n" }, -- Uses this feature on
+						-- normal mode
+
+						-- This is nice to have
+						callbacks = {
+							on_enable = function(_, win)
+								vim.wo[win].conceallevel = 2
+								vim.wo[win].concealcursor = "c"
 							end,
 						},
-
-						"filetype",
-						"fileformat",
 					},
-					lualine_y = {
-						"progress",
-					},
-					lualine_z = { "location" },
-				},
-				inactive_sections = {
-					lualine_a = {},
-					lualine_b = {},
-					lualine_c = { { "filename", file_status = true, path = 1 } },
-					lualine_x = { "location" },
-					lualine_y = {},
-					lualine_z = {},
-				},
-				extensions = { "fugitive", "nvim-tree" },
-			})
-		end,
-	},
-	-- wilder for terminal cmd
-	{
-		"gelguy/wilder.nvim",
-		config = function()
-			-- config goes here
-
-			local wilder = require("wilder")
-
-			wilder.setup({
-				modes = { ":", "/", "?" },
-			})
-
-			wilder.set_option(
-				"renderer",
-				wilder.popupmenu_renderer(wilder.popupmenu_palette_theme({
-					highlighter = wilder.basic_highlighter(),
-					left = { " ", wilder.popupmenu_devicons() },
-					right = { " ", wilder.popupmenu_scrollbar() },
-					-- 'single', 'double', 'rounded' or 'solid'
-					max_height = "50%",
-					min_height = "0",
-					pumblend = 0,
-					border = "rounded",
-					prompt_position = "bottom",
-					reverse = 0,
-				}))
-			)
-		end,
-	},
-	-- diff view in nvim
-	{
-		"sindrets/diffview.nvim",
-		config = function()
-			local keymap = vim.keymap
-			keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<CR>", { desc = "Open diffview" })
-			keymap.set("n", "<leader>gx", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" })
-		end,
-	},
-
-	-- neo clip / clip board manager
-	{
-		"AckslD/nvim-neoclip.lua",
-		dependencies = {
-			{ "kkharji/sqlite.lua", module = "sqlite" },
-			-- you'll need at least one of these
-			-- {'nvim-telescope/telescope.nvim'},
-			-- {'ibhagwan/fzf-lua'},
+				})
+			end,
 		},
-		config = function()
-			local keymap = vim.keymap
-			require("neoclip").setup()
-            keymap.set("n","<leader>cc","<cmd>Telescope neoclip<CR>",{desc= "open clipboard manager"})
-		end,
-	},
 
-	{
-		"windwp/nvim-ts-autotag",
-		config = function()
-			require("nvim-ts-autotag").setup({
-				opts = {
-					-- Defaults
-					enable_close = true, -- Auto close tags
-					enable_rename = true, -- Auto rename pairs of tags
-					enable_close_on_slash = true, -- Auto close on trailing </
-				},
-				-- Also override individual filetype configs, these take priority.
-				-- Empty by default, useful if one of the "opts" global settings
-				-- doesn't work well in a specific filetype
-				per_filetype = {
-					["html"] = {
-						enable_close = false,
+		--- indent blank line
+		{
+			"lukas-reineke/indent-blankline.nvim",
+			main = "ibl",
+			config = function()
+				local highlight = {
+					"RainbowRed",
+					"RainbowYellow",
+					"RainbowBlue",
+					"RainbowOrange",
+					"RainbowGreen",
+					"RainbowViolet",
+					"RainbowCyan",
+				}
+
+				local hooks = require("ibl.hooks")
+				-- create the highlight groups in the highlight setup hook, so they are reset
+				-- every time the colorscheme changes
+				hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+					vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
+					vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
+					vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
+					vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
+					vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
+					vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
+					vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
+				end)
+
+				vim.g.rainbow_delimiters = { highlight = highlight }
+				require("ibl").setup({
+					scope = { highlight = highlight },
+					-- v3
+					exclude = {
+						filetypes = {
+							"dashboard",
+						},
 					},
-				},
-			})
-		end,
-	},
-
-	-- Markdown live preview
-	{
-		"OXY2DEV/markview.nvim",
-		lazy = false, -- Recommended
-		-- ft = "markdown" -- If you decide to lazy-load anyway
-
-		dependencies = {
-			-- You will not need this if you installed the
-			-- parsers manually
-			-- Or if the parsers are in your $RUNTIMEPATH
-			"nvim-treesitter/nvim-treesitter",
-			"tree-sitter/tree-sitter",
-			"nvim-tree/nvim-web-devicons",
+				})
+				hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
+			end,
 		},
-		config = function()
-			require("markview").setup({
-                experimental = {
-                    check_rtp = false;
-                },
-				preview = {
-				 modes = { "n", "no", "c" }, -- Change these modes
-				 -- to what you need
 
-				 hybrid_modes = { "n" }, -- Uses this feature on
-				 -- normal mode
-
-				 -- This is nice to have
-				 callbacks = {
-					 on_enable = function(_, win)
-						 vim.wo[win].conceallevel = 2
-						 vim.wo[win].concealcursor = "c"
-					 end,
-				 },
-				},
-			})
-		end,
+		--- type stats
+		{
+			"nvzone/typr",
+			dependencies = "nvzone/volt",
+			opts = {},
+			cmd = { "Typr", "TyprStats" },
+		},
 	},
-
-	--- indent blank line
-	{
-		"lukas-reineke/indent-blankline.nvim",
-		main = "ibl",
-		config = function()
-
-			local highlight = {
-				"RainbowRed",
-				"RainbowYellow",
-				"RainbowBlue",
-				"RainbowOrange",
-				"RainbowGreen",
-				"RainbowViolet",
-				"RainbowCyan",
-			}
-
-			local hooks = require("ibl.hooks")
-			-- create the highlight groups in the highlight setup hook, so they are reset
-			-- every time the colorscheme changes
-			hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
-				vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
-				vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
-				vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
-				vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
-				vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
-				vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
-				vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
-			end)
-
-			vim.g.rainbow_delimiters = { highlight = highlight }
-			require("ibl").setup({ 
-                scope = { highlight = highlight },
-            -- v3
-            exclude = {
-              filetypes = {
-                "dashboard",
-              },
-            },
-            })
-			hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
-		end,
-	},
-
-	--- type stats
-    {
-        "nvzone/typr",
-        dependencies = "nvzone/volt",
-        opts = {},
-        cmd = { "Typr", "TyprStats" },
-    },
 }
-
-}
-
