@@ -1,5 +1,4 @@
 require("config.options")
 require("config.autocmds")
 require("config.keymaps")
-require("plugins.personal.startup")
 require("config.lazy")

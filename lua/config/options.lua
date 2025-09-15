@@ -20,7 +20,7 @@ opt.numberwidth = 1
 opt.errorbells = false
 
 -- Disable mouse
-opt.mouse = ""
+-- opt.mouse = ""
 
 -- Tabs widths
 opt.tabstop = 4

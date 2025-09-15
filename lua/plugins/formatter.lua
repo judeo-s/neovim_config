@@ -1,6 +1,5 @@
 return {
 	"stevearc/conform.nvim",
-
 	config = function()
 		local conform = require("conform")
 		local keymap = vim.keymap
@@ -8,7 +7,7 @@ return {
 		conform.setup({
 			formatters_by_ft = {
 				lua = { "stylua" },
-				python = { "isort", "black" },
+				python = { "black" },
 				javascript = { "prettier" },
 				javascriptreact = { "prettier" },
 				typescript = { "prettier" },
@@ -20,7 +19,6 @@ return {
 				go = { "goimports", "gofmt" },
 				sh = { "beautysh" },
 			},
-
 			format_on_save = {
 				lsp_fallback = true,
 				async = false,
@@ -36,6 +34,7 @@ return {
 
 			notify_on_error = false,
 		})
+
 		--  special config for prettier
 		require("conform.formatters.prettier").args = function(self, ctx)
 			local args = { "--stdin-filepath", "$FILENAME" }

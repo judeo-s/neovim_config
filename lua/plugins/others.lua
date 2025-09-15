@@ -1,27 +1,145 @@
 return {
-	-- which key, for checking keys
+    -- Dashbaord nvim
+    {
+      'nvimdev/dashboard-nvim',
+      event = 'VimEnter',
+      config = function()
+        require('dashboard').setup {
+          -- config
+        }
+      end,
+      dependencies = { {'nvim-tree/nvim-web-devicons'}}
+    },
+    -- which key, for checking keys
+    {
+      "folke/which-key.nvim",
+      event = "VeryLazy",
+      opts = {
+        -- your configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      },
+      keys = {
+        {
+          "<leader>?",
+          function()
+            require("which-key").show({ global = false })
+          end,
+          desc = "Buffer Local Keymaps (which-key)",
+        },
+      },
+    },
+    {
+
 	{
-		"folke/which-key.nvim",
-		lazy = true,
+		"yorickpeterse/nvim-window",
+		keys = {
+			{ "<leader>w", "<cmd>lua require('nvim-window').pick()<CR>", desc = "nvim-window Selection" },
+		},
 		config = function()
-			local whichkey = require("which-key")
+            require("nvim-window").setup({
+                -- The characters available for hinting windows.
+                chars = {"1", "2", "3", "4", "5", "6", "7", "8"},
 
-			whichkey.setup({
+                -- A group to use for overwriting the Normal highlight group in the floating
+                -- window. This can be used to change the background color.
+                normal_hl = "Normal",
 
-				icons = {
-					breadcrumb = "»", -- symbol used in the command line area that shows your active key combo
-					separator = "➜", -- symbol used between a key and it's label
-					group = "+", -- symbol prepended to a group
-				},
-				window = {
-					border = "single",
-					winblend = 0,
-				},
-			})
-			-- whick key
-			whichkey.register(mappings, opts)
-			vim.o.timeout = true
-			vim.o.timeoutlen = 300
+                -- The highlight group to apply to the line that contains the hint characters.
+                -- This is used to make them stand out more.
+                hint_hl = "Bold",
+
+                -- The border style to use for the floating window.
+                border = "single"
+            })
+
+            local map = vim.api.nvim_set_keymap
+            local default_options = {noremap = true, silent = true}
+
+            map("n", "<leader>w", "<cmd>lua require('nvim-window').pick()<CR>", default_options)
+            end,
+        },
+    },
+
+    -- discord presence
+    {
+
+        "andweeb/presence.nvim",
+        config = function()
+            require("config.presence")
+        end,
+    },
+
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		config = function()
+            local harpoon = require("harpoon")
+            harpoon:setup({
+                settings = {
+                    save_on_toggle = true,
+                },
+            })
+
+            local function my_harpoon_add_file()
+                harpoon:list():add()
+
+                local f = vim.api.nvim_buf_get_name(0)
+                vim.notify("Harpoon: <" .. f .. "> added", vim.log.levels.INFO, {})
+            end
+
+            local toggle_opts = {
+                border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+                ui_width_ratio = 0.375,
+                title_pos = "center",
+            }
+
+            local function toggle_next_buffer()
+                if harpoon:list():length() == 0 then
+                    vim.cmd("bnext")
+                else
+                    harpoon:list():next({ ui_nav_wrap = true })
+                end
+            end
+
+            local function toggle_prev_buffer()
+                if harpoon:list():length() == 0 then
+                    vim.cmd("bprevious")
+                else
+                    harpoon:list():prev({ ui_nav_wrap = true })
+                end
+            end
+
+            vim.keymap.set("n", "m", function()
+                my_harpoon_add_file()
+            end)
+            vim.keymap.set("n", "<leader>mm", function()
+                harpoon.ui:toggle_quick_menu(harpoon:list(), toggle_opts)
+            end)
+            vim.keymap.set("n", "M1", function()
+                harpoon:list():select(1)
+            end)
+            vim.keymap.set("n", "M2", function()
+                harpoon:list():select(2)
+            end)
+            vim.keymap.set("n", "M3", function()
+                harpoon:list():select(3)
+            end)
+            vim.keymap.set("n", "M4", function()
+                harpoon:list():select(4)
+            end)
+            vim.keymap.set("n", "M5", function()
+                harpoon:list():select(5)
+            end)
+
+            -- Tab switch buffer
+            vim.keymap.set("n", "<TAB>", function()
+                toggle_next_buffer()
+            end)
+            vim.keymap.set("n", "<S-TAB>", function()
+                toggle_prev_buffer()
+            end)
+
 		end,
 	},
 
@@ -135,83 +253,6 @@ return {
 			vim.notify = fidget.notify
 		end,
 	},
-
-	-- colorscheme : catppuccin
-	{
-		"catppuccin/nvim",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			-- vim.cmd.colorscheme("catppuccin-mocha")
-		end,
-	},
-
-	-- colorscheme : horizon
-	{
-		"akinsho/horizon.nvim",
-		version = "*",
-		priority = 1000,
-		config = function()
-			-- vim.cmd.colorscheme("horizon")
-		end,
-	},
-	-- colorscheme : sonokai
-	{
-		"sainnhe/sonokai",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			-- Optionally configure and load the colorscheme
-			-- directly inside the plugin declaration.
-			vim.g.sonokai_style = "espresso"
-			vim.g.sonokai_better_performance = 1
-			vim.g.sonokai_enable_italic = true
-			-- vim.cmd.colorscheme("sonokai")
-		end,
-	},
-	-- colorscheme : gruvbox
-	{
-		"ellisonleao/gruvbox.nvim",
-		priority = 1000,
-		config = function()
-			--	vim.cmd.colorscheme("gruvbox")
-		end,
-	},
-
-	-- colorscheme : nightfly
-	{
-		"bluz71/vim-nightfly-guicolors",
-		priority = 1000, -- make sure to load this before all the other start plugins
-		config = function()
-			-- vim.cmd([[colorscheme nightfly]])
-		end,
-	},
-
-	-- colorscheme : onedark
-	{
-		"olimorris/onedarkpro.nvim",
-		priority = 1000, -- Ensure it loads first
-		config = function()
-			vim.cmd.colorscheme("onedark_dark")
-		end,
-	},
-
-	-- colorscheme : synthwave84
-	{
-		"lunarvim/synthwave84.nvim",
-		priority = 1000,
-		config = function()
-			-- vim.cmd.colorscheme("synthwave84")
-		end,
-	},
-	-- colorscheme : Kanagawa
-	{
-		"rebelot/kanagawa.nvim",
-		config = function()
-			--vim.cmd.colorscheme("kanagawa-dragon")
-		end,
-	},
-
 	-- neo-tree / file manager
 	{
 		"nvim-neo-tree/neo-tree.nvim",
@@ -388,12 +429,33 @@ return {
                     ]])
 		end,
 	},
+
+
+
+    -- lualine harpoo
+    {
+        'kiennt63/harpoon-files.nvim',
+        dependencies = {
+            { 'ThePrimeagen/harpoon', branch = 'harpoon2' },
+        opts = {
+            max_length = 5,
+            icon = '',
+            show_icon = true,
+            show_index = true,
+            show_filename = true,
+            separator_left = ' ',
+            separator_right = ' ',
+            reverse_order = false,
+        },
+    },
+
 	{
 		"nvim-lualine/lualine.nvim",
 		-- event = "VeryLazy",
 		config = function()
 			local lualine = require("lualine")
 			local lazy_status = require("lazy.status")
+            local harpoon_files = require("harpoon_files")
 
 			lualine.setup({
 				options = {
@@ -417,7 +479,7 @@ return {
 							symbols = { error = " " },
 						},
 					},
-					lualine_c = { "filename", { "searchcount" } },
+					lualine_c = { {"filename"}, { "searchcount" } ,{harpoon_files.lualine_component}},
 					lualine_x = {
 						{
 							lazy_status.updates,
@@ -434,7 +496,6 @@ return {
 							end,
 						},
 
-						"encoding",
 						"filetype",
 						"fileformat",
 					},
@@ -493,6 +554,7 @@ return {
 			keymap.set("n", "<leader>gx", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" })
 		end,
 	},
+
 	-- neo clip / clip board manager
 	{
 		"AckslD/nvim-neoclip.lua",
@@ -503,9 +565,12 @@ return {
 			-- {'ibhagwan/fzf-lua'},
 		},
 		config = function()
+			local keymap = vim.keymap
 			require("neoclip").setup()
+            keymap.set("n","<leader>cc","<cmd>Telescope neoclip<CR>",{desc= "open clipboard manager"})
 		end,
 	},
+
 	{
 		"windwp/nvim-ts-autotag",
 		config = function()
@@ -527,6 +592,7 @@ return {
 			})
 		end,
 	},
+
 	-- Markdown live preview
 	{
 		"OXY2DEV/markview.nvim",
@@ -543,6 +609,9 @@ return {
 		},
 		config = function()
 			require("markview").setup({
+                experimental = {
+                    check_rtp = false;
+                },
 				preview = {
 				 modes = { "n", "no", "c" }, -- Change these modes
 				 -- to what you need
@@ -561,11 +630,13 @@ return {
 			})
 		end,
 	},
+
 	--- indent blank line
 	{
 		"lukas-reineke/indent-blankline.nvim",
 		main = "ibl",
 		config = function()
+
 			local highlight = {
 				"RainbowRed",
 				"RainbowYellow",
@@ -575,6 +646,7 @@ return {
 				"RainbowViolet",
 				"RainbowCyan",
 			}
+
 			local hooks = require("ibl.hooks")
 			-- create the highlight groups in the highlight setup hook, so they are reset
 			-- every time the colorscheme changes
@@ -589,20 +661,27 @@ return {
 			end)
 
 			vim.g.rainbow_delimiters = { highlight = highlight }
-			require("ibl").setup({ scope = { highlight = highlight } })
-
+			require("ibl").setup({ 
+                scope = { highlight = highlight },
+            -- v3
+            exclude = {
+              filetypes = {
+                "dashboard",
+              },
+            },
+            })
 			hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
 		end,
 	},
+
 	--- type stats
-	{
-		"nvzone/typr",
-		cmd = "TyprStats",
-		dependencies = "nvzone/volt",
-		opts = {},
-	},
+    {
+        "nvzone/typr",
+        dependencies = "nvzone/volt",
+        opts = {},
+        cmd = { "Typr", "TyprStats" },
+    },
 }
 
---[[ multiple cursors
-		"jake-stewart/multicursor.nvim",
---]]
+}
+
