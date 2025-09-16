@@ -22,11 +22,6 @@ return {
 			-- │ GLOBALS │
 			local lspconfig = require("lspconfig")
 
-			-- │ CMP LSP CAPABILITIES │
-			local lsp_defaults = lspconfig.util.default_config
-			lsp_defaults.capabilities =
-				vim.tbl_deep_extend("force", lsp_defaults.capabilities, require("cmp_nvim_lsp").default_capabilities())
-
 			-- │ LSP BORDER │
 			require("lspconfig.ui.windows").default_options.border = "single"
 
@@ -44,7 +39,6 @@ return {
 				vim.keymap.set("n", "<F4>", "<cmd>lua vim.lsp.buf.code_action()<cr>", opts)
 			end
 
-			-- │ LSP BORDERS │
 			local border = {
 				{ "┌", "FloatBorder" },
 				{ "─", "FloatBorder" },
@@ -56,23 +50,56 @@ return {
 				{ "│", "FloatBorder" },
 			}
 
-			vim.keymap.set("n", "E", function()
-				-- If we find a floating window, close it.
-				for _, win in ipairs(vim.api.nvim_list_wins()) do
-					if vim.api.nvim_win_get_config(win).relative ~= "" then
-						vim.api.nvim_win_close(win, true)
-						return
+			-- │ Diagnostics toggle (enable one function) │ --
+			-- this will make diagnostics show constantly
+			function enable_diagnostics_default()
+				vim.diagnostic.config({
+					virtual_text = true,
+					signs = true,
+					underline = true,
+					update_in_insert = false,
+					severity_sort = true,
+					float = {
+						focusable = false,
+						style = "minimal",
+						border = "rounded",
+						source = "always",
+						header = "",
+						prefix = "",
+					},
+				})
+				vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+					callback = function()
+						vim.diagnostic.open_float(nil, { focus = false })
+					end,
+				})
+				vim.opt.updatetime = 250
+			end
+
+			-- this will make diagnostics on Keybinding
+			function enable_toggle_diagnostics(keybinding)
+				keybinding = keybinding or "E"
+				vim.keymap.set("n", keybinding, function()
+					-- If we find a floating window, close it.
+					for _, win in ipairs(vim.api.nvim_list_wins()) do
+						if vim.api.nvim_win_get_config(win).relative ~= "" then
+							vim.api.nvim_win_close(win, true)
+							return
+						end
 					end
-				end
+					vim.diagnostic.open_float(nil, { focus = false })
+				end, { desc = "Toggle Diagnostics" })
+			end
 
-				vim.diagnostic.open_float(nil, { focus = false })
-			end, { desc = "Toggle Diagnostics" })
+			enable_diagnostics_default()
 
+			-- | Handlers | --
 			local handlers = {
 				["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
 				["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
 			}
 
+			-- | Capabilities | --
 			local global_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 			--| C & C++ |

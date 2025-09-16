@@ -24,6 +24,19 @@
   ```
 - or do `:Mason`
 
+- Diagnostics , important, there are 2 functions (this is also found in `lsp.lua`)
+
+  ```lua
+      -- this will make diagnostics show constantly
+      function enable_diagnostics_default()
+
+      -- this will make diagnostics on Keybinding
+      function enable_toggle_diagnostics(keybinding)
+
+      -- default
+      enable_diagnostics_default()
+  ```
+
 ---
 
 # Cmp & snip
