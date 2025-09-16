@@ -5,27 +5,22 @@ return {
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			{ "hrsh7th/cmp-nvim-lsp" },
-            {'saecki/crates.nvim',
-            tag = 'stable',
-            config = function()
-                require('crates').setup()
-            end
-            },
-            {
-              'mrcjkb/rustaceanvim',
-              version = '^6', -- Recommended
-              lazy = false, -- This plugin is already lazy
-            },
+			{
+				"saecki/crates.nvim",
+				tag = "stable",
+				config = function()
+					require("crates").setup()
+				end,
+			},
+			{
+				"mrcjkb/rustaceanvim",
+				version = "^6", -- Recommended
+				lazy = false, -- This plugin is already lazy
+			},
 		},
 		config = function()
 			-- │ GLOBALS │
 			local lspconfig = require("lspconfig")
-            
-
-			-- │ CMP LSP CAPABILITIES │
-			local lsp_defaults = lspconfig.util.default_config
-			lsp_defaults.capabilities =
-				vim.tbl_deep_extend("force", lsp_defaults.capabilities, require("cmp_nvim_lsp").default_capabilities())
 
 			-- │ LSP BORDER │
 			require("lspconfig.ui.windows").default_options.border = "single"
@@ -44,7 +39,6 @@ return {
 				vim.keymap.set("n", "<F4>", "<cmd>lua vim.lsp.buf.code_action()<cr>", opts)
 			end
 
-			-- │ LSP BORDERS │
 			local border = {
 				{ "┌", "FloatBorder" },
 				{ "─", "FloatBorder" },
@@ -55,71 +49,96 @@ return {
 				{ "└", "FloatBorder" },
 				{ "│", "FloatBorder" },
 			}
-            
-            vim.keymap.set("n", "E", function()
-                -- If we find a floating window, close it.
-                for _, win in ipairs(vim.api.nvim_list_wins()) do
-                    if vim.api.nvim_win_get_config(win).relative ~= "" then
-                        vim.api.nvim_win_close(win, true)
-                        return
-                    end
-                end
 
-                vim.diagnostic.open_float(nil, { focus = false })
-            end, { desc = "Toggle Diagnostics" })
+			-- │ Diagnostics toggle (enable one function) │ --
+			-- this will make diagnostics show constantly
+			function enable_diagnostics_default()
+				vim.diagnostic.config({
+					virtual_text = true,
+					signs = true,
+					underline = true,
+					update_in_insert = false,
+					severity_sort = true,
+					float = {
+						focusable = false,
+						style = "minimal",
+						border = "rounded",
+						source = "always",
+						header = "",
+						prefix = "",
+					},
+				})
+				vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+					callback = function()
+						vim.diagnostic.open_float(nil, { focus = false })
+					end,
+				})
+				vim.opt.updatetime = 250
+			end
 
+			-- this will make diagnostics on Keybinding
+			function enable_toggle_diagnostics(keybinding)
+				keybinding = keybinding or "E"
+				vim.keymap.set("n", keybinding, function()
+					-- If we find a floating window, close it.
+					for _, win in ipairs(vim.api.nvim_list_wins()) do
+						if vim.api.nvim_win_get_config(win).relative ~= "" then
+							vim.api.nvim_win_close(win, true)
+							return
+						end
+					end
+					vim.diagnostic.open_float(nil, { focus = false })
+				end, { desc = "Toggle Diagnostics" })
+			end
 
+			enable_diagnostics_default()
+
+			-- | Handlers | --
 			local handlers = {
 				["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
 				["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
 			}
-    
-            local  global_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+			-- | Capabilities | --
+			local global_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 			--| C & C++ |
-            vim.lsp.config('clangd',
-                {
-                    handlers = handlers,
-                    capabilities = {
-                        offsetEncoding = "utf-16",
-                        global_capabilities,
-                    },
+			vim.lsp.config("clangd", {
+				handlers = handlers,
+				capabilities = {
+					offsetEncoding = "utf-16",
+					global_capabilities,
+				},
+			})
 
-                }
-            )
-
-            vim.lsp.enable('clangd')
+			vim.lsp.enable("clangd")
 
 			--| CSS |
-            vim.lsp.config('cssls',
-            {
-                handlers = handlers,
-                capabilities = global_capabilities,
-            });
-            vim.lsp.enable('cssls');
+			vim.lsp.config("cssls", {
+				handlers = handlers,
+				capabilities = global_capabilities,
+			})
+			vim.lsp.enable("cssls")
 
 			--| JSON |
-            vim.lsp.config('jsonls',
-            {
-                handlers = handlers,
-                capabilities = global_capabilities,
-            });
-            vim.lsp.enable('jsonls')
+			vim.lsp.config("jsonls", {
+				handlers = handlers,
+				capabilities = global_capabilities,
+			})
+			vim.lsp.enable("jsonls")
 
 			--| JAVA |
-            vim.lsp.config('jdtls',{
-                handlers = handlers,
-                capabilities = global_capabilities,
-            });
-            vim.lsp.enable('jdtls')
-
+			vim.lsp.config("jdtls", {
+				handlers = handlers,
+				capabilities = global_capabilities,
+			})
+			vim.lsp.enable("jdtls")
 
 			--| RUST |
-            -- rust doesn't even need an init
+			-- rust doesn't even need an init
 
 			-- │ YAML SERVER │
-			vim.lsp.config('yamlls',{
+			vim.lsp.config("yamlls", {
 				handlers = handlers,
 				settings = {
 					yaml = {
@@ -142,9 +161,9 @@ return {
 						tabSize = 2,
 					},
 				},
-                capabilities = global_capabilities,
+				capabilities = global_capabilities,
 			})
-            vim.lsp.enable('yamlls')
+			vim.lsp.enable("yamlls")
 
 			-- vim.lsp.config('arduino_language_server'{
 			-- 	--	on_attach = on_attach,
@@ -165,8 +184,7 @@ return {
 			-- 		"/usr/bin/clangd",
 			-- 	},
 			-- })
-            -- vim.lsp.enable('arduino_language_server')
-
+			-- vim.lsp.enable('arduino_language_server')
 		end,
 	},
 
@@ -175,16 +193,16 @@ return {
 	--  ╰─────────────╯
 	{
 		"mason-org/mason.nvim",
-        opts = {},
+		opts = {},
 	},
-    {
-        "mason-org/mason-lspconfig.nvim",
-        opts = {},
-        dependencies = {
-            { "mason-org/mason.nvim", opts = {} },
-            "neovim/nvim-lspconfig",
-        },
-    },
+	{
+		"mason-org/mason-lspconfig.nvim",
+		opts = {},
+		dependencies = {
+			{ "mason-org/mason.nvim", opts = {} },
+			"neovim/nvim-lspconfig",
+		},
+	},
 	-- lsp saga
 	{
 		"nvimdev/lspsaga.nvim",
