@@ -1,232 +1,254 @@
 return {
-	{
-		"neovim/nvim-lspconfig",
-		cmd = "LspInfo",
-		event = { "BufReadPre", "BufNewFile" },
-		dependencies = {
-			{ "hrsh7th/cmp-nvim-lsp" },
-			{
-				"saecki/crates.nvim",
-				tag = "stable",
-				config = function()
-					require("crates").setup()
-				end,
-			},
-			{
-				"mrcjkb/rustaceanvim",
-				version = "^6", -- Recommended
-				lazy = false, -- This plugin is already lazy
-			},
-		},
-		config = function()
-			-- │ GLOBALS │
-			local lspconfig = require("lspconfig")
+    {
+        "neovim/nvim-lspconfig",
+        cmd = "LspInfo",
+        event = { "BufReadPre", "BufNewFile" },
+        dependencies = {
+            { "hrsh7th/cmp-nvim-lsp" },
+            {
+                "saecki/crates.nvim",
+                tag = "stable",
+                config = function()
+                    require("crates").setup()
+                end,
+            },
+            {
+                "mrcjkb/rustaceanvim",
+                version = "^6", -- Recommended
+                lazy = false,   -- This plugin is already lazy
+            },
+        },
+        config = function()
+            -- │ GLOBALS │
+            local lspconfig = require("lspconfig")
 
-			-- │ LSP BORDER │
-			require("lspconfig.ui.windows").default_options.border = "single"
+            -- │ LSP BORDER │
+            require("lspconfig.ui.windows").default_options.border = "single"
 
-			local lsp_attach = function(client, bufnr)
-				local opts = { buffer = bufnr }
-				vim.keymap.set("n", "K", "<cmd>lua vim.lsp.buf.hover()<cr>", opts)
-				vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
-				vim.keymap.set("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", opts)
-				vim.keymap.set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<cr>", opts)
-				vim.keymap.set("n", "go", "<cmd>lua vim.lsp.buf.type_definition()<cr>", opts)
-				vim.keymap.set("n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>", opts)
-				vim.keymap.set("n", "gs", "<cmd>lua vim.lsp.buf.signature_help()<cr>", opts)
-				vim.keymap.set("n", "<F2>", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
-				vim.keymap.set({ "n", "x" }, "<F3>", "<cmd>lua vim.lsp.buf.format({async = true})<cr>", opts)
-				vim.keymap.set("n", "<F4>", "<cmd>lua vim.lsp.buf.code_action()<cr>", opts)
-			end
+            vim.api.nvim_create_autocmd("LspAttach", {
+                group = vim.api.nvim_create_augroup("inlay-hintsAttach", { clear = true }),
+                callback = function(event)
+                    local client = vim.lsp.get_client_by_id(event.data.client_id)
+                    if client and client.server_capabilities.inlayHintProvider then
+                        vim.api.nvim_set_hl(0, "LspInlayHint", { fg = "#d8d8d8", bg = "#3a3a3a" })
+                        vim.api.nvim_create_autocmd("InsertEnter", {
+                            buffer = event.buf,
+                            callback = function()
+                                vim.lsp.inlay_hint.enable(false)
+                            end
+                        })
+                        vim.api.nvim_create_autocmd({ "InsertLeave", "LspNotify" }, {
+                            buffer = event.buf,
+                            callback = function()
+                                vim.lsp.inlay_hint.enable(true)
+                            end
+                        })
+                    end
+                end,
+            })
 
-			local border = {
-				{ "┌", "FloatBorder" },
-				{ "─", "FloatBorder" },
-				{ "┐", "FloatBorder" },
-				{ "│", "FloatBorder" },
-				{ "┘", "FloatBorder" },
-				{ "─", "FloatBorder" },
-				{ "└", "FloatBorder" },
-				{ "│", "FloatBorder" },
-			}
+            local lsp_attach = function(client, bufnr)
+                local opts = { buffer = bufnr }
+                vim.keymap.set("n", "K", "<cmd>lua vim.lsp.buf.hover()<cr>", opts)
+                vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
+                vim.keymap.set("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", opts)
+                vim.keymap.set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<cr>", opts)
+                vim.keymap.set("n", "go", "<cmd>lua vim.lsp.buf.type_definition()<cr>", opts)
+                vim.keymap.set("n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>", opts)
+                vim.keymap.set("n", "gs", "<cmd>lua vim.lsp.buf.signature_help()<cr>", opts)
+                vim.keymap.set("n", "<F2>", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
+                vim.keymap.set({ "n", "x" }, "<F3>", "<cmd>lua vim.lsp.buf.format({async = true})<cr>", opts)
+                vim.keymap.set("n", "<F4>", "<cmd>lua vim.lsp.buf.code_action()<cr>", opts)
+            end
 
-			-- │ Diagnostics toggle (enable one function) │ --
-			-- this will make diagnostics show constantly
-			function enable_diagnostics_default()
-				vim.diagnostic.config({
-					virtual_text = true,
-					signs = true,
-					underline = true,
-					update_in_insert = false,
-					severity_sort = true,
-					float = {
-						focusable = false,
-						style = "minimal",
-						border = "rounded",
-						source = "always",
-						header = "",
-						prefix = "",
-					},
-				})
-				vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-					callback = function()
-						vim.diagnostic.open_float(nil, { focus = false })
-					end,
-				})
-				vim.opt.updatetime = 250
-			end
+            local border = {
+                { "┌", "FloatBorder" },
+                { "─", "FloatBorder" },
+                { "┐", "FloatBorder" },
+                { "│", "FloatBorder" },
+                { "┘", "FloatBorder" },
+                { "─", "FloatBorder" },
+                { "└", "FloatBorder" },
+                { "│", "FloatBorder" },
+            }
 
-			-- this will make diagnostics on Keybinding
-			function enable_toggle_diagnostics(keybinding)
-				keybinding = keybinding or "E"
-				vim.keymap.set("n", keybinding, function()
-					-- If we find a floating window, close it.
-					for _, win in ipairs(vim.api.nvim_list_wins()) do
-						if vim.api.nvim_win_get_config(win).relative ~= "" then
-							vim.api.nvim_win_close(win, true)
-							return
-						end
-					end
-					vim.diagnostic.open_float(nil, { focus = false })
-				end, { desc = "Toggle Diagnostics" })
-			end
+            -- │ Diagnostics toggle (enable one function) │ --
+            -- this will make diagnostics show constantly
+            function enable_diagnostics_default()
+                vim.diagnostic.config({
+                    virtual_text = true,
+                    signs = true,
+                    underline = true,
+                    update_in_insert = false,
+                    severity_sort = true,
+                    float = {
+                        focusable = false,
+                        style = "minimal",
+                        border = "rounded",
+                        source = "always",
+                        header = "",
+                        prefix = "",
+                    },
+                })
+                vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+                    callback = function()
+                        vim.diagnostic.open_float(nil, { focus = false })
+                    end,
+                })
+                vim.opt.updatetime = 250
+            end
 
-			enable_diagnostics_default()
+            -- this will make diagnostics on Keybinding
+            function enable_toggle_diagnostics(keybinding)
+                keybinding = keybinding or "E"
+                vim.keymap.set("n", keybinding, function()
+                    -- If we find a floating window, close it.
+                    for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        if vim.api.nvim_win_get_config(win).relative ~= "" then
+                            vim.api.nvim_win_close(win, true)
+                            return
+                        end
+                    end
+                    vim.diagnostic.open_float(nil, { focus = false })
+                end, { desc = "Toggle Diagnostics" })
+            end
 
-			-- | Handlers | --
-			local handlers = {
-				["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
-				["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
-			}
+            enable_diagnostics_default()
 
-			-- | Capabilities | --
-			local global_capabilities = require("cmp_nvim_lsp").default_capabilities()
+            -- | Handlers | --
+            local handlers = {
+                ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
+                ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
+            }
 
-			--| C & C++ |
-			vim.lsp.config("clangd", {
-				handlers = handlers,
-				capabilities = {
-					offsetEncoding = "utf-16",
-					global_capabilities,
-				},
-			})
+            -- | Capabilities | --
+            local global_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-			vim.lsp.enable("clangd")
+            --| C & C++ |
+            vim.lsp.config("clangd", {
+                handlers = handlers,
+                capabilities = {
+                    offsetEncoding = "utf-16",
+                    global_capabilities,
+                },
+            })
 
-			--| CSS |
-			vim.lsp.config("cssls", {
-				handlers = handlers,
-				capabilities = global_capabilities,
-			})
-			vim.lsp.enable("cssls")
+            vim.lsp.enable("clangd")
 
-			--| JSON |
-			vim.lsp.config("jsonls", {
-				handlers = handlers,
-				capabilities = global_capabilities,
-			})
-			vim.lsp.enable("jsonls")
+            --| CSS |
+            vim.lsp.config("cssls", {
+                handlers = handlers,
+                capabilities = global_capabilities,
+            })
+            vim.lsp.enable("cssls")
 
-			--| JAVA |
-			vim.lsp.config("jdtls", {
-				handlers = handlers,
-				capabilities = global_capabilities,
-			})
-			vim.lsp.enable("jdtls")
+            --| JSON |
+            vim.lsp.config("jsonls", {
+                handlers = handlers,
+                capabilities = global_capabilities,
+            })
+            vim.lsp.enable("jsonls")
 
-			--| RUST |
-			-- rust doesn't even need an init
+            --| JAVA |
+            vim.lsp.config("jdtls", {
+                handlers = handlers,
+                capabilities = global_capabilities,
+            })
+            vim.lsp.enable("jdtls")
 
-			-- │ YAML SERVER │
-			vim.lsp.config("yamlls", {
-				handlers = handlers,
-				settings = {
-					yaml = {
-						validate = true,
-						hover = true,
-						completion = true,
-						format = {
-							enable = true,
-							singleQuote = true,
-							bracketSpacing = true,
-						},
-						editor = {
-							tabSize = 2,
-						},
-						schemaStore = {
-							enable = true,
-						},
-					},
-					editor = {
-						tabSize = 2,
-					},
-				},
-				capabilities = global_capabilities,
-			})
-			vim.lsp.enable("yamlls")
+            --| RUST |
+            -- rust doesn't even need an init
 
-			-- vim.lsp.config('arduino_language_server'{
-			-- 	--	on_attach = on_attach,
-			-- 	--	capabilities = capabilities,
-			-- 	handlers = handlers,
-			-- 	-- init_options = {
-			-- 	-- 	timeout = 10000, -- increase timeout to 10 seconds
-			-- 	-- },
-			-- 	cmd = {
-			-- 		"$HOME/go/bin/arduino-language-server",
-			-- 		"-cli-config",
-			-- 		"$HOME/.arduino15/arduino-cli.yaml",
-			-- 		"-fqbn",
-			-- 		"arduino:avr:uno",
-			-- 		"-cli",
-			-- 		"$HOME/.local/bin/arduino-cli",
-			-- 		"-clangd",
-			-- 		"/usr/bin/clangd",
-			-- 	},
-			-- })
-			-- vim.lsp.enable('arduino_language_server')
-		end,
-	},
+            -- │ YAML SERVER │
+            vim.lsp.config("yamlls", {
+                handlers = handlers,
+                settings = {
+                    yaml = {
+                        validate = true,
+                        hover = true,
+                        completion = true,
+                        format = {
+                            enable = true,
+                            singleQuote = true,
+                            bracketSpacing = true,
+                        },
+                        editor = {
+                            tabSize = 2,
+                        },
+                        schemaStore = {
+                            enable = true,
+                        },
+                    },
+                    editor = {
+                        tabSize = 2,
+                    },
+                },
+                capabilities = global_capabilities,
+            })
+            vim.lsp.enable("yamlls")
 
-	--  ╭─────────────╮
-	--  │   MASON     │
-	--  ╰─────────────╯
-	{
-		"mason-org/mason.nvim",
-		opts = {},
-	},
-	{
-		"mason-org/mason-lspconfig.nvim",
-		opts = {},
-		dependencies = {
-			{ "mason-org/mason.nvim", opts = {} },
-			"neovim/nvim-lspconfig",
-		},
-	},
-	-- lsp saga
-	{
-		"nvimdev/lspsaga.nvim",
-		config = function()
-			require("lspsaga").setup({
-				symbol_in_winbar = {
-					enable = true,
-					separator = " > ",
-					show_file = true,
-					delay = 400,
-					color_mode = true,
-				},
-				outline = {
-					layout = "float",
-				},
-				lightbulb = {
-					enable = false,
-					sign = false,
-				},
-			})
-		end,
-		dependencies = {
-			"nvim-treesitter/nvim-treesitter", -- optional
-			"nvim-tree/nvim-web-devicons", -- optional
-		},
-	},
+            -- vim.lsp.config('arduino_language_server'{
+            -- 	--	on_attach = on_attach,
+            -- 	--	capabilities = capabilities,
+            -- 	handlers = handlers,
+            -- 	-- init_options = {
+            -- 	-- 	timeout = 10000, -- increase timeout to 10 seconds
+            -- 	-- },
+            -- 	cmd = {
+            -- 		"$HOME/go/bin/arduino-language-server",
+            -- 		"-cli-config",
+            -- 		"$HOME/.arduino15/arduino-cli.yaml",
+            -- 		"-fqbn",
+            -- 		"arduino:avr:uno",
+            -- 		"-cli",
+            -- 		"$HOME/.local/bin/arduino-cli",
+            -- 		"-clangd",
+            -- 		"/usr/bin/clangd",
+            -- 	},
+            -- })
+            -- vim.lsp.enable('arduino_language_server')
+        end,
+    },
+
+    --  ╭─────────────╮
+    --  │   MASON     │
+    --  ╰─────────────╯
+    {
+        "mason-org/mason.nvim",
+        opts = {},
+    },
+    {
+        "mason-org/mason-lspconfig.nvim",
+        opts = {},
+        dependencies = {
+            { "mason-org/mason.nvim", opts = {} },
+            "neovim/nvim-lspconfig",
+        },
+    },
+    -- lsp saga
+    {
+        "nvimdev/lspsaga.nvim",
+        config = function()
+            require("lspsaga").setup({
+                symbol_in_winbar = {
+                    enable = true,
+                    separator = " > ",
+                    show_file = true,
+                    delay = 400,
+                    color_mode = true,
+                },
+                outline = {
+                    layout = "float",
+                },
+                lightbulb = {
+                    enable = false,
+                    sign = false,
+                },
+            })
+        end,
+        dependencies = {
+            "nvim-treesitter/nvim-treesitter", -- optional
+            "nvim-tree/nvim-web-devicons",     -- optional
+        },
+    },
 }
