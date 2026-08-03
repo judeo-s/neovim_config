@@ -46,7 +46,7 @@ return {
 		"bluz71/vim-nightfly-guicolors",
 		priority = 1000, -- make sure to load this before all the other start plugins
 		config = function()
-			-- vim.cmd.colorscheme("nightfly")
+			vim.cmd.colorscheme("nightfly")
 		end,
 	},
 
@@ -55,7 +55,7 @@ return {
 		"olimorris/onedarkpro.nvim",
 		priority = 1000, -- Ensure it loads first
 		config = function()
-			vim.cmd.colorscheme("onedark_dark")
+			-- vim.cmd.colorscheme("onedark_dark")
 		end,
 	},
 

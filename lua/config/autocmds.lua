@@ -1,5 +1,8 @@
--- highlight yanked text for 500ms after yanking
+-- Neovim 0.12 currently errors when nvim-treesitter's markdown injection query
+-- reads fenced code block info strings inside hover/preview buffers.
+vim.treesitter.query.set("markdown", "injections", "")
 
+-- highlight yanked text for 500ms after yanking
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
 		vim.highlight.on_yank({

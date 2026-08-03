@@ -20,20 +20,20 @@ return {
 				sh = { "beautysh" },
 			},
 			format_on_save = {
-				lsp_fallback = true,
+				lsp_format = "fallback",
 				async = false,
 				timeout_ms = 500,
 			},
-			keymap.set({ "n", "v" }, "<leader>mp", function()
-				conform.format({
-					lsp_fallback = true,
-					async = false,
-					timeout_ms = 1000,
-				})
-			end, { desc = "Format file or range(in visual mode)" }),
-
 			notify_on_error = false,
 		})
+
+		keymap.set({ "n", "v" }, "<leader>mp", function()
+			conform.format({
+				lsp_format = "fallback",
+				async = false,
+				timeout_ms = 1000,
+			})
+		end, { desc = "Format file or range(in visual mode)" })
 
 		--  special config for prettier
 		require("conform.formatters.prettier").args = function(self, ctx)

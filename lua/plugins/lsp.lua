@@ -4,7 +4,6 @@ return {
 		cmd = "LspInfo",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
-			{ "hrsh7th/cmp-nvim-lsp" },
 			{
 				"saecki/crates.nvim",
 				tag = "stable",
@@ -35,13 +34,13 @@ return {
 						vim.api.nvim_create_autocmd("InsertEnter", {
 							buffer = event.buf,
 							callback = function()
-								vim.lsp.inlay_hint.enable(false)
+								vim.lsp.inlay_hint.enable(false, { bufnr = event.buf })
 							end,
 						})
 						vim.api.nvim_create_autocmd({ "InsertLeave", "LspNotify" }, {
 							buffer = event.buf,
 							callback = function()
-								vim.lsp.inlay_hint.enable(true)
+								vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
 							end,
 						})
 					end
@@ -103,21 +102,104 @@ return {
 			enable_diagnostics_default()
 
 			-- | Handlers | --
+			local function float_config(config)
+				return vim.tbl_deep_extend("force", config or {}, { border = border })
+			end
+
+			local function hover_handler(_, result, ctx, config)
+				config = float_config(config)
+				config.focus_id = ctx.method
+
+				if vim.api.nvim_get_current_buf() ~= ctx.bufnr then
+					return
+				end
+
+				if not (result and result.contents) then
+					if config.silent ~= true then
+						vim.notify("No information available")
+					end
+					return
+				end
+
+				local contents
+				if type(result.contents) == "table" and result.contents.kind == "plaintext" then
+					contents = vim.split(result.contents.value or "", "\n", { trimempty = true })
+				else
+					contents = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
+				end
+
+				if vim.tbl_isempty(contents) then
+					if config.silent ~= true then
+						vim.notify("No information available")
+					end
+					return
+				end
+
+				return vim.lsp.util.open_floating_preview(contents, "plaintext", config)
+			end
+
+			local sig_help_ns = vim.api.nvim_create_namespace("nvim.lsp.signature_help")
+
+			local function signature_handler(_, result, ctx, config)
+				config = float_config(config)
+				config.focus_id = ctx.method
+
+				if vim.api.nvim_get_current_buf() ~= ctx.bufnr then
+					return
+				end
+
+				if not (result and result.signatures and result.signatures[1]) then
+					if config.silent ~= true then
+						print("No signature help available")
+					end
+					return
+				end
+
+				local client = assert(vim.lsp.get_client_by_id(ctx.client_id))
+				local triggers = vim.tbl_get(client.server_capabilities, "signatureHelpProvider", "triggerCharacters")
+				local ft = vim.bo[ctx.bufnr].filetype
+				local lines, hl = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft, triggers)
+
+				if not lines or vim.tbl_isempty(lines) then
+					if config.silent ~= true then
+						print("No signature help available")
+					end
+					return
+				end
+
+				local fbuf, fwin = vim.lsp.util.open_floating_preview(lines, "plaintext", config)
+				if hl then
+					vim.hl.range(fbuf, sig_help_ns, "LspSignatureActiveParameter", { hl[1], hl[2] }, { hl[3], hl[4] })
+				end
+
+				return fbuf, fwin
+			end
+
 			local handlers = {
-				["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
-				["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
+				["textDocument/hover"] = hover_handler,
+				["textDocument/signatureHelp"] = signature_handler,
 			}
 
+			vim.lsp.handlers["textDocument/hover"] = hover_handler
+			vim.lsp.handlers["textDocument/signatureHelp"] = signature_handler
+
 			-- | Capabilities | --
-			local global_capabilities = require("cmp_nvim_lsp").default_capabilities()
+			local global_capabilities = vim.lsp.protocol.make_client_capabilities()
+			global_capabilities.textDocument.completion.completionItem.snippetSupport = true
+			global_capabilities.textDocument.completion.completionItem.resolveSupport = {
+				properties = {
+					"documentation",
+					"detail",
+					"additionalTextEdits",
+				},
+			}
 
 			--| C & C++ |
 			vim.lsp.config("clangd", {
 				handlers = handlers,
-				capabilities = {
-					offsetEncoding = "utf-16",
-					global_capabilities,
-				},
+				capabilities = vim.tbl_deep_extend("force", {}, global_capabilities, {
+					offsetEncoding = { "utf-16" },
+				}),
 			})
 
 			vim.lsp.enable("clangd")
@@ -136,24 +218,40 @@ return {
 			})
 			vim.lsp.enable("jsonls")
 
+			--| CMAKE |
+			vim.lsp.config("neocmake", {
+				handlers = handlers,
+				capabilities = global_capabilities,
+				init_options = {
+					format = { enable = true },
+					lint = { enable = true },
+				},
+			})
+			vim.lsp.enable("neocmake")
+
 			--| JAVA |
 			--| JAVA |
 
-			local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+			local root_markers = vim.fs.find({ ".gradlew", ".git", "mvnw", "pom.xml", "build.gradle" }, { upward = true })
+			local root_dir = root_markers[1] and vim.fs.dirname(root_markers[1]) or vim.fn.getcwd()
+			local project_name = vim.fn.fnamemodify(root_dir, ":p:h:t")
 			local workspace_dir = vim.fn.expand("~/.cache/jdtls/workspace/" .. project_name)
 
 			-- Ensure workspace directory exists
 			vim.fn.mkdir(workspace_dir, "p")
 
 			-- Define capabilities with proper client command support
-			local java_capabilities = vim.lsp.protocol.make_client_capabilities()
-			java_capabilities.workspace.executeCommand = {
-				dynamicRegistration = false,
-			}
-			java_capabilities.workspace.workspaceEdit = {
-				documentChanges = true,
-				resourceOperations = { "create", "rename", "delete" },
-			}
+			local java_capabilities = vim.tbl_deep_extend("force", {}, global_capabilities, {
+				workspace = {
+					executeCommand = {
+						dynamicRegistration = false,
+					},
+					workspaceEdit = {
+						documentChanges = true,
+						resourceOperations = { "create", "rename", "delete" },
+					},
+				},
+			})
 
 			-- Custom handlers to fix the missing command issues
 			local java_handlers = {
@@ -185,7 +283,7 @@ return {
 			}
 
 			vim.lsp.config("jdtls", {
-				handlers = java_handlers,
+				handlers = vim.tbl_extend("force", handlers, java_handlers),
 				capabilities = java_capabilities,
 				settings = {
 					java = {
@@ -244,9 +342,7 @@ return {
 					"--add-opens",
 					"java.base/java.lang=ALL-UNNAMED",
 				},
-				root_dir = vim.fs.dirname(
-					vim.fs.find({ ".gradlew", ".git", "mvnw", "pom.xml", "build.gradle" }, { upward = true })[1]
-				),
+				root_dir = root_dir,
 				-- Add initialization options
 				init_options = {
 					bundles = {},

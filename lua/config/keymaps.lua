@@ -19,8 +19,8 @@ keymap.set("n", "L", "$")
 
 -- Split window
 keymap.set("n", "se", "<C-w>=", { desc = "Make splits equal size" })
-keymap.set("n", "sv", ":vsplit<Return><C-w>w", { desc = "Make vertical split" }, { silent = true })
-keymap.set("n", "sh", ":split<Return>", { desc = "Make horizontal split" }, { silent = true })
+keymap.set("n", "sv", ":vsplit<Return><C-w>w", { desc = "Make vertical split", silent = true })
+keymap.set("n", "ss", ":split<Return>", { desc = "Make horizontal split", silent = true })
 
 -- Move to window
 keymap.set("n", "sh", "<C-w>h", { desc = "Move window left" })
@@ -52,7 +52,7 @@ keymap.set("n", "<C-w><down>", "<C-w>-")
 keymap.set("n", "x", '"_x')
 
 -- Render markdown using Markdown preview
-keymap.set("n", "<leader>md", "<cmd>MarkdownPreview<CR>", { desc = "Render current markdown file" })
+keymap.set("n", "<leader>md", "<cmd>Markview toggle<CR>", { desc = "Toggle markdown preview" })
 
 -- Move lines up and down
 keymap.set("n", "<A-j>", ":move .+1<CR>==")

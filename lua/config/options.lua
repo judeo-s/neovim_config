@@ -1,4 +1,3 @@
-local wo = vim.wo
 local opt = vim.opt
 local g = vim.g
 local o = vim.o
@@ -76,8 +75,6 @@ opt.sidescroll = 1
 
 --setup for vgit
 o.updatetime = 300
-o.incsearch = false
-wo.signcolumn = "yes"
 
 -- cursor line
 opt.cursorline = true
